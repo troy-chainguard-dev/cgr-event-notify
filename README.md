@@ -8,6 +8,14 @@ Monitors [Chainguard](https://www.chainguard.dev/) images for CVE changes and se
 
 > **Interactive version:** open [`docs/architecture.html`](docs/architecture.html) in a browser for a live, full-detail diagram.
 
+### Example Notifications
+
+<p align="center">
+  <img src="docs/images/slack-example.png" alt="Slack notification example" width="500" />
+  &nbsp;&nbsp;
+  <img src="docs/images/email-example.png" alt="Email notification example" width="500" />
+</p>
+
 ## What You Get Alerted On
 
 - **New CVE discovered** — a vulnerability appears in an image's vuln report that wasn't there before
