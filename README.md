@@ -4,7 +4,7 @@ Monitors container images from private [Chainguard](https://www.chainguard.dev/)
 
 ## Why This Exists
 
-Chainguard provides a [public security advisory feed](https://edu.chainguard.dev/chainguard/chainguard-images/staying-secure/security-advisories/) that customers can consult to review CVE data across images. However, security teams at enterprises need more than a feed to poll — they need to be notified the moment something changes. This project is a real-world, production-ready implementation of how a Chainguard customer can get automated, real-time alerts when CVE status changes in the images they own, delivered directly to the tools they already use.
+Chainguard provides a [public security advisory feed](https://edu.chainguard.dev/chainguard/chainguard-images/staying-secure/security-advisories/) that customers can consult to review CVE data across images. However, security teams at enterprises need more than a feed to poll — they need to be notified the moment something changes. This project pulls vulnerability data directly from the Chainguard platform APIs — the same source of truth that powers the Chainguard Console — so customers are alerted as soon as Chainguard's own scanners detect a change, rather than discovering it independently through their own scanning tools on a different timeline.
 
 <p align="center">
   <img src="docs/images/architecture.png" alt="cgr-event-notify architecture" width="800" />
