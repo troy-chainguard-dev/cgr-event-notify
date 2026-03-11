@@ -1,6 +1,10 @@
 # cgr-event-notify
 
-Monitors [Chainguard](https://www.chainguard.dev/) images for CVE changes and sends alerts to Slack and email. Uses AWS outbound identity federation to authenticate directly with the Chainguard platform APIs — no local tooling or static credentials required.
+Monitors container images from private [Chainguard](https://www.chainguard.dev/) organizations, giving customers immediate visibility when CVEs are discovered, resolved, or change severity in their owned images. Alerts are delivered to Slack and email in real time — powered by AWS identity federation with zero stored credentials.
+
+## Why This Exists
+
+Chainguard provides a [public security advisory feed](https://edu.chainguard.dev/chainguard/chainguard-images/staying-secure/security-advisories/) that customers can consult to review CVE data across images. However, security teams at enterprises need more than a feed to poll — they need to be notified the moment something changes. This project is a real-world, production-ready implementation of how a Chainguard customer can get automated, real-time alerts when CVE status changes in the images they own, delivered directly to the tools they already use.
 
 <p align="center">
   <img src="docs/images/architecture.png" alt="cgr-event-notify architecture" width="800" />
