@@ -10,11 +10,12 @@ Monitors [Chainguard](https://www.chainguard.dev/) images for CVE changes and se
 
 ### Example Notifications
 
-<p align="center">
-  <img src="docs/images/slack-example.png" alt="Slack notification example" width="500" />
-  &nbsp;&nbsp;
-  <img src="docs/images/email-example.png" alt="Email notification example" width="500" />
-</p>
+<table>
+  <tr>
+    <td align="center"><img src="docs/images/slack-example.png" alt="Slack notification example" width="480" /><br /><em>Slack notification</em></td>
+    <td align="center"><img src="docs/images/email-example.png" alt="Email notification example" width="480" /><br /><em>Email notification</em></td>
+  </tr>
+</table>
 
 ## What You Get Alerted On
 
