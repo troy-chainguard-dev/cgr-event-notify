@@ -1,6 +1,6 @@
 # cgr-event-notify
 
-Monitors [Chainguard](https://www.chainguard.dev/) images for CVE changes and sends alerts to Slack, email, and SMS. Uses AWS outbound identity federation to authenticate directly with the Chainguard platform APIs — no local tooling or static credentials required.
+Monitors [Chainguard](https://www.chainguard.dev/) images for CVE changes and sends alerts to Slack and email. Uses AWS outbound identity federation to authenticate directly with the Chainguard platform APIs — no local tooling or static credentials required.
 
 <p align="center">
   <img src="docs/images/architecture.png" alt="cgr-event-notify architecture" width="800" />
@@ -21,7 +21,7 @@ Monitors [Chainguard](https://www.chainguard.dev/) images for CVE changes and se
 - [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) configured with appropriate credentials
 - [AWS outbound identity federation](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_outbound.html) enabled on your AWS account
 - A [Chainguard](https://www.chainguard.dev/) organization with image repositories
-- A [Slack incoming webhook URL](https://api.slack.com/messaging/webhooks)
+- At least one notification channel: a [Slack incoming webhook URL](https://api.slack.com/messaging/webhooks) and/or email addresses
 
 ## Project Structure
 
@@ -74,10 +74,9 @@ Edit `terraform.tfvars`:
 | `chainguard_org_name` | **Yes** | Your Chainguard org name (e.g. `troylab`) |
 | `aws_sts_issuer_url` | **Yes** | AWS STS token issuer URL (from step 1) |
 | `watched_images` | **Yes** | List of `cgr.dev/...` image refs to monitor |
-| `slack_webhook_url` | **Yes** | Slack incoming webhook URL |
-| `scan_schedule` | No | Poll frequency (default: `rate(1 hour)`) |
+| `slack_webhook_url` | No | Slack incoming webhook URL |
 | `notification_emails` | No | Email addresses for SNS alerts |
-| `notification_phone_numbers` | No | Phone numbers (E.164) for SMS |
+| `scan_schedule` | No | Poll frequency (default: `rate(1 hour)`) |
 | `aws_region` | No | AWS region (default: `us-west-2`) |
 
 ### 3. Authenticate
@@ -147,7 +146,7 @@ The first run captures the current vulnerability state as a baseline (no alerts)
    - **Status changes**: severity or fix state changed
 6. Alerts are **published to SNS**, which fans out to:
    - **Slack** via the notifier Lambda (Block Kit formatted with severity, CVE links, packages, fix info)
-   - **Email/SMS** via native SNS subscriptions
+   - **Email** via native SNS subscriptions
 7. The new vulnerability state is **saved to S3** for the next scan cycle.
 
 ## Authentication Flow

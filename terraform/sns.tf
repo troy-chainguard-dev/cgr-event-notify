@@ -12,16 +12,6 @@ resource "aws_sns_topic_subscription" "email" {
   endpoint  = each.value
 }
 
-# --- SMS subscriptions ---
-
-resource "aws_sns_topic_subscription" "sms" {
-  for_each = toset(var.notification_phone_numbers)
-
-  topic_arn = aws_sns_topic.alerts.arn
-  protocol  = "sms"
-  endpoint  = each.value
-}
-
 # --- Slack Lambda subscription ---
 
 resource "aws_sns_topic_subscription" "slack" {

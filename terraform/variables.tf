@@ -60,16 +60,11 @@ variable "slack_webhook_url" {
   description = "Slack incoming webhook URL for posting CVE alerts"
   type        = string
   sensitive   = true
+  default     = ""
 }
 
 variable "notification_emails" {
   description = "Email addresses to subscribe to the SNS alert topic"
-  type        = list(string)
-  default     = []
-}
-
-variable "notification_phone_numbers" {
-  description = "Phone numbers (E.164 format, e.g. +15551234567) for SMS alerts"
   type        = list(string)
   default     = []
 }

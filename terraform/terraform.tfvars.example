@@ -38,9 +38,4 @@ notification_emails = [
   # "security-team@example.com",
 ]
 
-# Optional: phone numbers in E.164 format for SMS alerts
-notification_phone_numbers = [
-  # "+15551234567",
-]
-
 lambda_log_level = "INFO"
