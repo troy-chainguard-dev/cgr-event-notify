@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>cgr-event-notify — Architecture</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: linear-gradient(135deg, #0a0e1a 0%, #111827 50%, #0f172a 100%);
+    color: #e2e8f0;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .hero {
+    text-align: center;
+    padding: 60px 40px 40px;
+    position: relative;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(99, 102, 241, 0.08) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    border-radius: 24px;
+    padding: 6px 16px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #a5b4fc;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .badge svg { width: 14px; height: 14px; }
+
+  h1 {
+    font-size: 42px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, #f8fafc 0%, #94a3b8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+  }
+
+  .subtitle {
+    font-size: 17px;
+    color: #94a3b8;
+    font-weight: 400;
+    max-width: 640px;
+    margin: 0 auto 12px;
+    line-height: 1.6;
+  }
+
+  .tech-pills {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+
+  .pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 12px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .pill.aws { background: rgba(255, 153, 0, 0.1); color: #fbbf24; border-color: rgba(255, 153, 0, 0.2); }
+  .pill.cg { background: rgba(52, 211, 153, 0.1); color: #6ee7b7; border-color: rgba(52, 211, 153, 0.2); }
+  .pill.tf { background: rgba(139, 92, 246, 0.1); color: #c4b5fd; border-color: rgba(139, 92, 246, 0.2); }
+  .pill.py { background: rgba(59, 130, 246, 0.1); color: #93c5fd; border-color: rgba(59, 130, 246, 0.2); }
+
+  /* ── Flow Diagram ── */
+  .flow-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 40px 60px;
+  }
+
+  .flow-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-bottom: 16px;
+    padding-left: 4px;
+  }
+
+  .flow-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin-bottom: 24px;
+    flex-wrap: nowrap;
+  }
+
+  .flow-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 0 6px;
+    flex-shrink: 0;
+  }
+
+  .flow-arrow .line {
+    width: 48px;
+    height: 2px;
+    background: linear-gradient(90deg, rgba(99, 102, 241, 0.3), rgba(99, 102, 241, 0.6));
+    border-radius: 1px;
+  }
+
+  .flow-arrow .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: #6366f1;
+    white-space: nowrap;
+  }
+
+  .flow-arrow-down {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 8px 0;
+  }
+
+  .flow-arrow-down .vline {
+    width: 2px;
+    height: 32px;
+    background: linear-gradient(180deg, rgba(99, 102, 241, 0.3), rgba(99, 102, 241, 0.6));
+    border-radius: 1px;
+  }
+
+  .flow-arrow-down .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: #6366f1;
+    margin-top: 2px;
+  }
+
+  .card {
+    border-radius: 14px;
+    padding: 20px 24px;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 14px;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  .card-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+    font-size: 18px;
+  }
+
+  .card-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: #f1f5f9;
+  }
+
+  .card-desc {
+    font-size: 11px;
+    color: #94a3b8;
+    line-height: 1.5;
+  }
+
+  .card-desc code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    background: rgba(255,255,255,0.06);
+    padding: 1px 5px;
+    border-radius: 4px;
+    color: #cbd5e1;
+  }
+
+  /* Card colors */
+  .card.scheduler { background: rgba(99, 102, 241, 0.08); min-width: 160px; }
+  .card.scheduler .card-icon { background: rgba(99, 102, 241, 0.15); }
+
+  .card.lambda-main { background: rgba(251, 191, 36, 0.06); min-width: 260px; }
+  .card.lambda-main .card-icon { background: rgba(251, 191, 36, 0.12); }
+
+  .card.aws-sts { background: rgba(251, 146, 60, 0.06); min-width: 180px; }
+  .card.aws-sts .card-icon { background: rgba(251, 146, 60, 0.12); }
+
+  .card.cg-sts { background: rgba(52, 211, 153, 0.06); min-width: 180px; }
+  .card.cg-sts .card-icon { background: rgba(52, 211, 153, 0.12); }
+
+  .card.cg-api { background: rgba(52, 211, 153, 0.06); min-width: 200px; }
+  .card.cg-api .card-icon { background: rgba(52, 211, 153, 0.12); }
+
+  .card.s3 { background: rgba(59, 130, 246, 0.06); min-width: 160px; }
+  .card.s3 .card-icon { background: rgba(59, 130, 246, 0.12); }
+
+  .card.sns { background: rgba(244, 114, 182, 0.06); min-width: 160px; }
+  .card.sns .card-icon { background: rgba(244, 114, 182, 0.12); }
+
+  .card.slack { background: rgba(139, 92, 246, 0.06); min-width: 150px; }
+  .card.slack .card-icon { background: rgba(139, 92, 246, 0.12); }
+
+  .card.email { background: rgba(244, 114, 182, 0.06); min-width: 130px; }
+  .card.email .card-icon { background: rgba(244, 114, 182, 0.12); }
+
+  /* ── Auth flow detail ── */
+  .auth-flow {
+    max-width: 1100px;
+    margin: 0 auto 48px;
+    padding: 0 40px;
+  }
+
+  .auth-box {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px;
+    padding: 32px;
+  }
+
+  .auth-box h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #e2e8f0;
+  }
+
+  .auth-steps {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .auth-step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 14px 18px;
+    min-width: 200px;
+    flex: 1;
+  }
+
+  .step-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: rgba(99, 102, 241, 0.15);
+    color: #a5b4fc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .step-text {
+    font-size: 12px;
+    color: #94a3b8;
+    line-height: 1.5;
+  }
+
+  .step-text strong {
+    color: #e2e8f0;
+    font-weight: 500;
+    display: block;
+    margin-bottom: 2px;
+    font-size: 13px;
+  }
+
+  .auth-step-arrow {
+    color: #4f46e5;
+    font-size: 18px;
+    flex-shrink: 0;
+    align-self: center;
+  }
+
+  /* ── What You Get ── */
+  .alerts-section {
+    max-width: 1100px;
+    margin: 0 auto 60px;
+    padding: 0 40px;
+  }
+
+  .alerts-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .alert-card {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 24px;
+    transition: border-color 0.2s;
+  }
+
+  .alert-card:hover { border-color: rgba(255,255,255,0.12); }
+
+  .alert-icon {
+    font-size: 24px;
+    margin-bottom: 12px;
+  }
+
+  .alert-card h4 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #f1f5f9;
+  }
+
+  .alert-card p {
+    font-size: 12px;
+    color: #94a3b8;
+    line-height: 1.5;
+  }
+
+  .alert-card.new-cve { border-left: 3px solid #ef4444; }
+  .alert-card.resolved { border-left: 3px solid #22c55e; }
+  .alert-card.changed { border-left: 3px solid #f59e0b; }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 32px 40px 48px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .footer-logos {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 32px;
+    margin-bottom: 16px;
+  }
+
+  .footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #64748b;
+  }
+
+  .footer-logo svg { width: 20px; height: 20px; opacity: 0.5; }
+
+  .footer p {
+    font-size: 11px;
+    color: #475569;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .flow-row { flex-wrap: wrap; justify-content: center; }
+    .alerts-grid { grid-template-columns: 1fr; }
+    .auth-steps { flex-direction: column; }
+    .auth-step-arrow { transform: rotate(90deg); align-self: center; }
+    h1 { font-size: 32px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="badge">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    Chainguard CVE Monitor
+  </div>
+  <h1>cgr-event-notify</h1>
+  <p class="subtitle">Serverless CVE monitoring for Chainguard container images.<br>Zero stored credentials. Real-time Slack &amp; email alerts.</p>
+  <div class="tech-pills">
+    <span class="pill aws">AWS Lambda</span>
+    <span class="pill aws">EventBridge</span>
+    <span class="pill aws">SNS</span>
+    <span class="pill aws">S3</span>
+    <span class="pill cg">Chainguard API</span>
+    <span class="pill cg">Identity Federation</span>
+    <span class="pill tf">Terraform</span>
+    <span class="pill py">Python 3.12</span>
+  </div>
+</div>
+
+<!-- Main Flow -->
+<div class="flow-container">
+  <div class="flow-section-label">Data Flow</div>
+
+  <!-- Row 1: Scheduler → Lambda -->
+  <div class="flow-row">
+    <div class="card scheduler">
+      <div class="card-icon">⏱️</div>
+      <div class="card-title">EventBridge Scheduler</div>
+      <div class="card-desc">Triggers hourly<br><code>rate(1 hour)</code></div>
+    </div>
+    <div class="flow-arrow">
+      <div class="label">invokes</div>
+      <div class="line"></div>
+    </div>
+    <div class="card lambda-main">
+      <div class="card-icon">λ</div>
+      <div class="card-title">CVE Scanner Lambda</div>
+      <div class="card-desc">Authenticates, queries vuln reports,<br>diffs against previous state, publishes alerts</div>
+    </div>
+  </div>
+
+  <!-- Row 2: Auth chain -->
+  <div class="flow-section-label" style="margin-top: 16px;">Authentication Chain (zero credentials stored)</div>
+  <div class="flow-row">
+    <div class="card aws-sts">
+      <div class="card-icon">🔑</div>
+      <div class="card-title">AWS STS</div>
+      <div class="card-desc"><code>GetWebIdentityToken</code><br>Returns AWS-signed JWT</div>
+    </div>
+    <div class="flow-arrow">
+      <div class="label">JWT</div>
+      <div class="line"></div>
+    </div>
+    <div class="card cg-sts">
+      <div class="card-icon">🔐</div>
+      <div class="card-title">Chainguard STS</div>
+      <div class="card-desc"><code>issuer.enforce.dev</code><br>Exchanges JWT → access token</div>
+    </div>
+    <div class="flow-arrow">
+      <div class="label">token</div>
+      <div class="line"></div>
+    </div>
+    <div class="card cg-api">
+      <div class="card-icon">🛡️</div>
+      <div class="card-title">Chainguard Platform API</div>
+      <div class="card-desc"><code>console-api.enforce.dev</code><br>Repos → Tags → Vuln Reports</div>
+    </div>
+  </div>
+
+  <!-- Row 3: State + Alerts -->
+  <div class="flow-section-label" style="margin-top: 16px;">State &amp; Notification</div>
+  <div class="flow-row">
+    <div class="card s3">
+      <div class="card-icon">🗄️</div>
+      <div class="card-title">S3 Bucket</div>
+      <div class="card-desc">Stores vuln state<br>between scans for diffing</div>
+    </div>
+    <div class="flow-arrow">
+      <div class="label">diff</div>
+      <div class="line"></div>
+    </div>
+    <div class="card sns">
+      <div class="card-icon">📡</div>
+      <div class="card-title">SNS Topic</div>
+      <div class="card-desc">Fan-out to all<br>notification channels</div>
+    </div>
+    <div class="flow-arrow">
+      <div class="label">alerts</div>
+      <div class="line"></div>
+    </div>
+    <div class="card slack">
+      <div class="card-icon">💬</div>
+      <div class="card-title">Slack</div>
+      <div class="card-desc">Block Kit formatted<br>CVE alerts with NVD links</div>
+    </div>
+    <div class="flow-arrow">
+      <div class="line" style="width: 24px;"></div>
+    </div>
+    <div class="card email">
+      <div class="card-icon">📧</div>
+      <div class="card-title">Email</div>
+      <div class="card-desc">SNS native<br>email delivery</div>
+    </div>
+  </div>
+</div>
+
+<!-- Auth Detail -->
+<div class="auth-flow">
+  <div class="auth-box">
+    <h3>🔗 Identity Federation — How It Works</h3>
+    <div class="auth-steps">
+      <div class="auth-step">
+        <div class="step-num">1</div>
+        <div class="step-text">
+          <strong>Lambda IAM Role</strong>
+          Calls AWS STS with audience<br><code>issuer.enforce.dev</code>
+        </div>
+      </div>
+      <div class="auth-step-arrow">→</div>
+      <div class="auth-step">
+        <div class="step-num">2</div>
+        <div class="step-text">
+          <strong>AWS-signed JWT</strong>
+          Contains role ARN as subject,<br>STS issuer URL as issuer
+        </div>
+      </div>
+      <div class="auth-step-arrow">→</div>
+      <div class="auth-step">
+        <div class="step-num">3</div>
+        <div class="step-text">
+          <strong>Chainguard STS</strong>
+          Validates issuer + subject match<br>the pre-configured identity
+        </div>
+      </div>
+      <div class="auth-step-arrow">→</div>
+      <div class="auth-step">
+        <div class="step-num">4</div>
+        <div class="step-text">
+          <strong>Platform Token</strong>
+          Grants viewer access to<br>repos, tags &amp; vuln reports
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Alert Types -->
+<div class="alerts-section">
+  <div class="flow-section-label">What You Get Alerted On</div>
+  <div class="alerts-grid">
+    <div class="alert-card new-cve">
+      <div class="alert-icon">🔴</div>
+      <h4>New CVE Discovered</h4>
+      <p>A vulnerability appears in an image's report that wasn't there before. Includes severity, affected package, version, and fix status.</p>
+    </div>
+    <div class="alert-card resolved">
+      <div class="alert-icon">✅</div>
+      <h4>CVE Resolved</h4>
+      <p>A vulnerability that was previously present is no longer in the report — patched in a rebuilt image or marked as false positive.</p>
+    </div>
+    <div class="alert-card changed">
+      <div class="alert-icon">🟡</div>
+      <h4>Status Changed</h4>
+      <p>A vulnerability's severity or fix state changed — e.g. upgraded from MEDIUM to HIGH, or went from unfixed to fixed.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  <div class="footer-logos">
+    <div class="footer-logo">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.74 4.23c-.84-1.57-3.13-1.57-3.97 0L2.2 17.32c-.83 1.56.21 3.43 1.99 3.43h15.12c1.78 0 2.82-1.87 1.99-3.43L13.74 4.23z"/></svg>
+      AWS
+    </div>
+    <div class="footer-logo">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.18l7.12 3.56L12 11.3 4.88 7.74 12 4.18z"/></svg>
+      Chainguard
+    </div>
+    <div class="footer-logo">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+      Terraform
+    </div>
+  </div>
+  <p>cgr-event-notify &middot; Serverless CVE monitoring for Chainguard images &middot; Deployed with Terraform on AWS</p>
+</div>
+
+</body>
+</html>

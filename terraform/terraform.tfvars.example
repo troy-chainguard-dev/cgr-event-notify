@@ -1,0 +1,46 @@
+aws_region  = "us-west-2"
+environment = "dev"
+
+# ---------------------------------------------------------------------------
+# Chainguard authentication
+# ---------------------------------------------------------------------------
+
+# Your Chainguard organization name (the segment after cgr.dev/ in image refs)
+chainguard_org_name = "my-org"
+
+# AWS STS outbound identity federation issuer URL.
+# Find this in the AWS Console: IAM → Account settings → STS.
+# Format: https://<uuid>.tokens.sts.global.api.aws
+aws_sts_issuer_url = "https://00000000-0000-0000-0000-000000000000.tokens.sts.global.api.aws"
+
+# ---------------------------------------------------------------------------
+# Images to monitor for CVE changes
+# ---------------------------------------------------------------------------
+
+watched_images = [
+  # "cgr.dev/my-org/nginx:latest",
+  # "cgr.dev/my-org/python:latest",
+]
+
+# How often to check for new CVEs (EventBridge rate expression)
+# Examples: "rate(15 minutes)", "rate(1 hour)", "rate(6 hours)"
+scan_schedule = "rate(1 hour)"
+
+# ---------------------------------------------------------------------------
+# Notification channels
+# ---------------------------------------------------------------------------
+
+# Slack incoming webhook URL (create one at https://api.slack.com/messaging/webhooks)
+slack_webhook_url = ""  # https://api.slack.com/messaging/webhooks
+
+# Optional: email addresses to receive SNS alerts
+notification_emails = [
+  # "security-team@example.com",
+]
+
+# Optional: phone numbers in E.164 format for SMS alerts
+notification_phone_numbers = [
+  # "+15551234567",
+]
+
+lambda_log_level = "INFO"
